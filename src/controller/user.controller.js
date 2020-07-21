@@ -1,6 +1,5 @@
 const express = require("express");
 const route = express.Router();
-const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
