@@ -18,6 +18,7 @@ route.post("/signup", async (req, res) => {
       email,
       contact,
       password: hashPassword,
+      user_type: "normal",
     });
     const response = await user.save();
     if (user) {
@@ -64,6 +65,7 @@ route.post("/login", async (req, res) => {
               name: response && response[0] && response[0].name,
               email: response && response[0] && response[0].email,
               contact: response && response[0] && response[0].contact,
+              user_type: response && response[0] && response[0].user_type,
               access_token: token,
               success: true,
             },
@@ -100,6 +102,7 @@ route.post("/login", async (req, res) => {
               name: response && response[0] && response[0].name,
               email: response && response[0] && response[0].email,
               contact: response && response[0] && response[0].contact,
+              user_type: response && response[0] && response[0].user_type,
               access_token: token,
               success: true,
             },
@@ -119,4 +122,8 @@ route.post("/login", async (req, res) => {
     });
   }
 });
+
+//delete user
+
+route.delete("/delete", (req, res) => {});
 module.exports = route;
