@@ -24,6 +24,14 @@ const property = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  img: {
+    type: String,
+    required: true,
+  },
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
-module.exports={}
+module.exports = property;
