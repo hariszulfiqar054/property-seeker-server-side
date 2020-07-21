@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const user_model = require("../models/user.model");
+const auth = require("../middleware/auth");
 const saltRounds = 10;
 
 route.use(express.json());
@@ -44,7 +45,7 @@ route.post("/login", async (req, res) => {
   try {
     if (email && email.includes("@")) {
       const response = await user_model.find({ email });
-      if (response && response.length === 0) {
+      if (response?.length === 0) {
         res.status(404).send({
           data: "User not found",
           success: false,
@@ -52,20 +53,23 @@ route.post("/login", async (req, res) => {
       } else {
         const compare_password = await bcrypt.compare(
           password,
-          response[0] && response[0].password
+          response[0]?.password
         );
         if (compare_password) {
           const token = jwt.sign(
-            { _id: response && response._id },
+            {
+              _id: response[0]?._id,
+              user_type: response[0]?.user_type,
+            },
             process.env.SECRET_KEY
           );
           res.status(200).send({
             data: {
-              id: response && response[0] && response[0]._id,
-              name: response && response[0] && response[0].name,
-              email: response && response[0] && response[0].email,
-              contact: response && response[0] && response[0].contact,
-              user_type: response && response[0] && response[0].user_type,
+              id: response[0]?._id,
+              name: response[0]?.name,
+              email: response[0]?.email,
+              contact: response[0]?.contact,
+              user_type: response[0]?.user_type,
               access_token: token,
               success: true,
             },
@@ -81,7 +85,7 @@ route.post("/login", async (req, res) => {
     //Login with phone number
     else {
       const response = await user_model.find({ contact: email });
-      if (response && response.length === 0) {
+      if (response?.length === 0) {
         res.status(404).send({
           data: "User not found",
           success: false,
@@ -89,20 +93,23 @@ route.post("/login", async (req, res) => {
       } else {
         const compare_password = await bcrypt.compare(
           password,
-          response[0] && response[0].password
+          response[0]?.password
         );
         if (compare_password) {
           const token = jwt.sign(
-            { _id: response && response._id },
+            {
+              _id: response[0]?._id,
+              user_type: response[0]?.user_type,
+            },
             process.env.SECRET_KEY
           );
           res.status(200).send({
             data: {
-              id: response && response[0] && response[0]._id,
-              name: response && response[0] && response[0].name,
-              email: response && response[0] && response[0].email,
-              contact: response && response[0] && response[0].contact,
-              user_type: response && response[0] && response[0].user_type,
+              id: response[0]?._id,
+              name: response[0]?.name,
+              email: response[0]?.email,
+              contact: response[0]?.contact,
+              user_type: response[0]?.user_type,
               access_token: token,
               success: true,
             },
@@ -123,7 +130,30 @@ route.post("/login", async (req, res) => {
   }
 });
 
-//delete user
-
-route.delete("/delete", (req, res) => {});
+//only admin can delete the user
+route.delete("/delete", auth, async (req, res) => {
+  const { id } = req.body;
+  try {
+    if (req?.user?.user_type?.toLowerCase() === "admin") {
+      const response = await user_model.deleteOne({ _id: id });
+      if (response) {
+        res.status(200).send({
+          data: response,
+          message: "User Delete Successfully",
+          success: true,
+        });
+      }
+    } else {
+      res.status(401).send({
+        data: "You are not eligible for this action",
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      data: "Internal Server Error",
+    });
+  }
+});
 module.exports = route;
