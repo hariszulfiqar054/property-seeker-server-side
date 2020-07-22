@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { model } = require("./user.model");
 
 const property = new mongoose.Schema({
   area: {
@@ -7,6 +8,7 @@ const property = new mongoose.Schema({
   },
   isHot: {
     type: Boolean,
+    default: false,
   },
   bathroom: {
     type: Number,
@@ -25,13 +27,21 @@ const property = new mongoose.Schema({
     required: true,
   },
   img: {
-    type: String,
+    type: [String],
     required: true,
   },
-  postedBy: {
+  new_bid: {
+    type: Number,
+  },
+  posted_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  bid_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
 });
 
-module.exports = property;
+module.exports = mongoose.model("Property", property);
