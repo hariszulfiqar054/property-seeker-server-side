@@ -35,7 +35,15 @@ route.post(
   async (req, res) => {
     const current_user_id = req?.user?._id;
     const images_path = req?.files?.map((data) => data?.path);
-    const { area, bathroom, bedroom, description, starting_bid } = req.body;
+    const {
+      area,
+      bathroom,
+      bedroom,
+      description,
+      starting_bid,
+      property_type,
+      city,
+    } = req.body;
     try {
       const new_property = new property_model({
         area,
@@ -45,6 +53,8 @@ route.post(
         starting_bid,
         img: images_path,
         posted_by: current_user_id,
+        property_type,
+        city,
       });
       const response = await new_property.save();
       res.status(201).send({
@@ -99,6 +109,10 @@ route.delete("/deleteproperty", auth, async (req, res) => {
       success: false,
     });
   }
+});
+
+route.post("/searchproperty", auth, async (req, res) => {
+  const { bedroom, bathroom, property_type, area, city } = req.body;
 });
 
 module.exports = route;

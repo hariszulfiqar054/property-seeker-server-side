@@ -3,7 +3,7 @@ const { model } = require("./user.model");
 
 const property = new mongoose.Schema({
   area: {
-    type: String,
+    type: Number,
     required: true,
   },
   isHot: {
@@ -21,6 +21,18 @@ const property = new mongoose.Schema({
   description: {
     type: String,
     required: true,
+  },
+  property_type: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    default: "Pakistan",
   },
   starting_bid: {
     type: Number,
