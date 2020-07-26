@@ -16,7 +16,10 @@ app.use(routes.user, user_route);
 app.use(routes.property, property_route);
 
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then((response) => console.log("DB connected successfully"))
   .catch((err) => console.log(err));
 

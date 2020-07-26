@@ -21,6 +21,16 @@ route.post("/signup", async (req, res) => {
       password: hashPassword,
       user_type: "normal",
     });
+
+    const check_email = await user_model.findOne({ email });
+    const check_phone = await user_model.findOne({ contact });
+    if (check_email || check_phone) {
+      res.status(400).json({
+        data: "User Already exist with these credentials",
+        success: false,
+      });
+    }
+
     const response = await user.save();
     if (user) {
       res.status(201).send({

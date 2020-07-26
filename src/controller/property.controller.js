@@ -111,6 +111,7 @@ route.delete("/deleteproperty", auth, async (req, res) => {
   }
 });
 
+//Filter
 route.post("/searchproperty", auth, async (req, res) => {
   const { bedroom, bathroom, property_type, area, city } = req.body;
 });
