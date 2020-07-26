@@ -57,14 +57,14 @@ route.post(
         city,
       });
       const response = await new_property.save();
-      res.status(201).send({
+      res.status(201).json({
         data: response,
         success: true,
         message: "Property Successfully Posted",
       });
     } catch (error) {
       console.log(error);
-      res.status(500).send({
+      res.status(500).json({
         data: "Internal Server Error",
         success: false,
       });
@@ -78,9 +78,9 @@ route.get("/getproperties", auth, async (req, res) => {
     const response = await property_model.find({});
     res
       .status(200)
-      .send({ data: response, success: true, message: "All Properties" });
+      .json({ data: response, success: true, message: "All Properties" });
   } catch (error) {
-    res.status(500).send({
+    res.status(500).json({
       data: "Internal Server Error",
       success: false,
     });
@@ -97,14 +97,14 @@ route.delete("/deleteproperty", auth, async (req, res) => {
     const user = await property_model.findOne({ _id: id });
     if (user?.posted_by == current_user_id || role == "admin") {
       const response = await property_model.deleteOne({ _id: id });
-      res.status(200).send({
+      res.status(200).json({
         data: response,
         message: "Property Successfully Deleted",
         success: true,
       });
     }
   } catch (error) {
-    res.status(500).send({
+    res.status(500).json({
       data: "Internal Server Error",
       success: false,
     });

@@ -4,7 +4,7 @@ require("dotenv").config();
 module.exports = (req, res, next) => {
   const token = req.header("Authorization");
   if (!token)
-    return res.status(401).send({
+    return res.status(401).json({
       data: "No token provided",
       success: false,
     });
@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).send({
+    res.status(400).json({
       data: "Invalid Token",
       success: false,
     });

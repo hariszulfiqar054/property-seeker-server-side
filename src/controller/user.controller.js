@@ -33,14 +33,14 @@ route.post("/signup", async (req, res) => {
 
     const response = await user.save();
     if (user) {
-      res.status(201).send({
+      res.status(201).json({
         data: response,
         message: "User Registered",
         success: true,
       });
     }
   } catch (error) {
-    res.status(501).send({
+    res.status(501).json({
       data: "Server Timeout",
       success: false,
     });
@@ -56,7 +56,7 @@ route.post("/login", async (req, res) => {
     if (email && email.includes("@")) {
       const response = await user_model.find({ email });
       if (response?.length === 0) {
-        res.status(404).send({
+        res.status(404).json({
           data: "User not found",
           success: false,
         });
@@ -73,7 +73,7 @@ route.post("/login", async (req, res) => {
             },
             process.env.SECRET_KEY
           );
-          res.status(200).send({
+          res.status(200).json({
             data: {
               id: response[0]?._id,
               name: response[0]?.name,
@@ -85,7 +85,7 @@ route.post("/login", async (req, res) => {
             },
           });
         } else {
-          res.status(401).send({
+          res.status(401).json({
             data: "Invalid email or phone",
             success: false,
           });
@@ -96,7 +96,7 @@ route.post("/login", async (req, res) => {
     else {
       const response = await user_model.find({ contact: email });
       if (response?.length === 0) {
-        res.status(404).send({
+        res.status(404).json({
           data: "User not found",
           success: false,
         });
@@ -113,7 +113,7 @@ route.post("/login", async (req, res) => {
             },
             process.env.SECRET_KEY
           );
-          res.status(200).send({
+          res.status(200).json({
             data: {
               id: response[0]?._id,
               name: response[0]?.name,
@@ -125,7 +125,7 @@ route.post("/login", async (req, res) => {
             },
           });
         } else {
-          res.status(401).send({
+          res.status(401).json({
             data: "Invalid email or phone",
             success: false,
           });
@@ -133,7 +133,7 @@ route.post("/login", async (req, res) => {
       }
     }
   } catch (error) {
-    res.status(500).send({
+    res.status(500).json({
       data: "Internal Server Error",
       success: false,
     });
@@ -147,21 +147,21 @@ route.delete("/delete", auth, async (req, res) => {
     if (req?.user?.user_type?.toLowerCase() === "admin") {
       const response = await user_model.deleteOne({ _id: id });
       if (response) {
-        res.status(200).send({
+        res.status(200).json({
           data: response,
           message: "User Delete Successfully",
           success: true,
         });
       }
     } else {
-      res.status(401).send({
+      res.status(401).json({
         data: "You are not eligible for this action",
         success: false,
       });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    res.status(500).json({
       data: "Internal Server Error",
     });
   }
