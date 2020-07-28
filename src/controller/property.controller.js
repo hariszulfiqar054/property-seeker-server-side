@@ -3,6 +3,7 @@ const route = express.Router();
 const multer = require("multer");
 const auth = require("../middleware/auth");
 const property_model = require("../models/property.model");
+const { json } = require("express");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -54,7 +55,7 @@ route.post(
         img: images_path,
         posted_by: current_user_id,
         property_type,
-        city,
+        city: city?.toLowerCase(),
       });
       const response = await new_property.save();
       res.status(201).json({
@@ -114,6 +115,91 @@ route.delete("/deleteproperty", auth, async (req, res) => {
 //Filter
 route.post("/searchproperty", auth, async (req, res) => {
   const { bedroom, bathroom, property_type, area, city } = req.body;
+  let query = {};
+  if (bedroom) query.bedroom = { $lte: bedroom };
+  if (bathroom) query.bathroom = { $lte: bathroom };
+  if (property_type) query.property_type = property_type;
+  if (area) {
+    let data = area?.split("-");
+    let range1 = parseInt(data[0]);
+    let range2 = parseInt(data[1]);
+
+    query.area = { $gte: range1, $lte: range2 };
+  }
+  if (city) query.city = city;
+  try {
+    const response = await property_model.find(query);
+    res.status(200).json({
+      date: response,
+      success: true,
+      message: "Filtered Data",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Get the hot properties
+route.get("/hotProperties", auth, async (req, res) => {
+  try {
+    const response = await property_model.find({ isHot: true });
+    res.status(200).json({
+      data: response,
+      message: "Hot properties",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500),
+      json({
+        data: "Internal Server Error",
+        success: false,
+      });
+  }
+});
+
+//Add properties to hot
+route.post("/addHot", auth, async (req, res) => {
+  const { property_id } = req.body;
+  try {
+    const response = await property_model.update(
+      { _id: property_id },
+      { $set: { isHot: true } }
+    );
+    res.status(200).json({
+      date: response,
+      success: true,
+      message: "Successfully added to hot categoires",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Remove from Hot
+route.post("/delHot", auth, async (req, res) => {
+  const { property_id } = req.body;
+  try {
+    const response = await property_model.update(
+      { _id: property_id },
+      { $set: { isHot: false } }
+    );
+    res.status(200).json({
+      date: response,
+      success: true,
+      message: "Successfully removed from hot categories",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
 });
 
 module.exports = route;
