@@ -208,7 +208,10 @@ route.post("/delHot", auth, async (req, res) => {
 route.get("/home/:type", auth, async (req, res) => {
   const { type } = req.params;
   try {
-    const response = await property_model.find({ property_type: type });
+    const response = await property_model.find({
+      property_type: type,
+      isHot: false,
+    });
     res.status(200).json({
       data: response,
       success: true,
