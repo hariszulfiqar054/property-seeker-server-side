@@ -115,6 +115,7 @@ route.delete("/deleteproperty", auth, async (req, res) => {
 //Filter
 route.post("/searchproperty", auth, async (req, res) => {
   const { bedroom, bathroom, property_type, area, city } = req.body;
+  console.log(bedroom, bathroom, property_type, area, city);
   let query = {};
   if (bedroom) query.bedroom = { $lte: bedroom };
   if (bathroom) query.bathroom = { $lte: bathroom };
@@ -126,11 +127,12 @@ route.post("/searchproperty", auth, async (req, res) => {
 
     query.area = { $gte: range1, $lte: range2 };
   }
+  query.isHot = false;
   if (city) query.city = city;
   try {
     const response = await property_model.find(query);
     res.status(200).json({
-      date: response,
+      data: response,
       success: true,
       message: "Filtered Data",
     });
@@ -169,7 +171,7 @@ route.post("/addHot", auth, async (req, res) => {
       { $set: { isHot: true } }
     );
     res.status(200).json({
-      date: response,
+      data: response,
       success: true,
       message: "Successfully added to hot categoires",
     });
@@ -190,7 +192,7 @@ route.post("/delHot", auth, async (req, res) => {
       { $set: { isHot: false } }
     );
     res.status(200).json({
-      date: response,
+      data: response,
       success: true,
       message: "Successfully removed from hot categories",
     });
