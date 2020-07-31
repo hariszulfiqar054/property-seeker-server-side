@@ -204,4 +204,22 @@ route.post("/delHot", auth, async (req, res) => {
   }
 });
 
+//Home Data
+route.get("/home/:type", auth, async (req, res) => {
+  const { type } = req.params;
+  try {
+    const response = await property_model.find({ property_type: type });
+    res.status(200).json({
+      data: response,
+      success: true,
+      message: "Successfully get home data",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
 module.exports = route;
