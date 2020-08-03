@@ -129,6 +129,7 @@ route.post("/searchproperty", auth, async (req, res) => {
     query.area = { $gte: range1, $lte: range2 };
   }
   query.isHot = false;
+  query.isSold = false;
   if (city) query.city = city;
   try {
     const response = await property_model.find(query);
@@ -153,7 +154,7 @@ route.post("/searchproperty", auth, async (req, res) => {
 route.get("/hotProperties", auth, async (req, res) => {
   const current_user_id = req?.user?._id;
   try {
-    const response = await property_model.find({ isHot: true });
+    const response = await property_model.find({ isHot: true, isSold: false });
     const filterResult = response?.filter(
       (data) => data?.posted_by !== current_user_id
     );
@@ -222,6 +223,7 @@ route.get("/home/:type", auth, async (req, res) => {
     const response = await property_model.find({
       property_type: type,
       isHot: false,
+      isSold: false,
     });
     const filterResult = response?.filter(
       (data) => data?.posted_by !== current_user_id
@@ -243,7 +245,10 @@ route.get("/home/:type", auth, async (req, res) => {
 route.get("/posted", auth, async (req, res) => {
   const current_user = req?.user?._id;
   try {
-    const response = await property_model.find({ posted_by: current_user });
+    const response = await property_model.find({
+      posted_by: current_user,
+      isSold: false,
+    });
     res.status(200).json({
       data: response,
       success: true,
@@ -292,6 +297,50 @@ route.get("/getpurchased", auth, async (req, res) => {
       data: response,
       success: true,
       message: "Successfully Get pruchased Property",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Approve the Bid
+route.put("/approveBid", auth, async (req, res) => {
+  const { property_id } = req.body;
+  try {
+    const get_bid_id = await property_model.find({ _id: property_id });
+    const id = get_bid_id[0]?.bid_by;
+    const update_data = await property_model.update(
+      { _id: property_id },
+      { $set: { posted_by: id, isSold: true } }
+    );
+    res.status(200).json({
+      data: update_data,
+      success: true,
+      message: "Successfully Approved Bid",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Delete Bid
+route.put("/deleteBid", auth, async (req, res) => {
+  const { property_id } = req.body;
+  try {
+    const response = await property_model.update(
+      { _id: property_id },
+      { $set: { bid_by: null, new_bid: null } }
+    );
+    res.status(200).json({
+      data: response,
+      success: true,
+      message: "Successfully Delete Bid",
     });
   } catch (error) {
     res.status(500).json({

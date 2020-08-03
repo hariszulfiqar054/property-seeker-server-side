@@ -54,6 +54,10 @@ const property = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  isSold: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Property", property);
