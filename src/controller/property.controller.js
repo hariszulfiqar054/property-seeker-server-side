@@ -114,6 +114,7 @@ route.delete("/deleteproperty", auth, async (req, res) => {
 
 //Filter
 route.post("/searchproperty", auth, async (req, res) => {
+  const current_user_id = req?.user?._id;
   const { bedroom, bathroom, property_type, area, city } = req.body;
   console.log(bedroom, bathroom, property_type, area, city);
   let query = {};
@@ -131,8 +132,12 @@ route.post("/searchproperty", auth, async (req, res) => {
   if (city) query.city = city;
   try {
     const response = await property_model.find(query);
+
+    const filterResult = response?.filter(
+      (data) => data?.posted_by !== current_user_id
+    );
     res.status(200).json({
-      data: response,
+      data: filterResult,
       success: true,
       message: "Filtered Data",
     });
@@ -146,10 +151,14 @@ route.post("/searchproperty", auth, async (req, res) => {
 
 //Get the hot properties
 route.get("/hotProperties", auth, async (req, res) => {
+  const current_user_id = req?.user?._id;
   try {
     const response = await property_model.find({ isHot: true });
+    const filterResult = response?.filter(
+      (data) => data?.posted_by !== current_user_id
+    );
     res.status(200).json({
-      data: response,
+      data: filterResult,
       message: "Hot properties",
       success: true,
     });
@@ -186,6 +195,7 @@ route.post("/addHot", auth, async (req, res) => {
 //Remove from Hot
 route.post("/delHot", auth, async (req, res) => {
   const { property_id } = req.body;
+
   try {
     const response = await property_model.update(
       { _id: property_id },
@@ -207,15 +217,81 @@ route.post("/delHot", auth, async (req, res) => {
 //Home Data
 route.get("/home/:type", auth, async (req, res) => {
   const { type } = req.params;
+  const current_user_id = req?.user?._id;
   try {
     const response = await property_model.find({
       property_type: type,
       isHot: false,
     });
+    const filterResult = response?.filter(
+      (data) => data?.posted_by !== current_user_id
+    );
+    res.status(200).json({
+      data: filterResult,
+      success: true,
+      message: "Successfully get home data",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+// Get Posted properties
+route.get("/posted", auth, async (req, res) => {
+  const current_user = req?.user?._id;
+  try {
+    const response = await property_model.find({ posted_by: current_user });
     res.status(200).json({
       data: response,
       success: true,
       message: "Successfully get home data",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Place Bid
+route.post("/placebid", auth, async (req, res) => {
+  const { new_bid } = req?.body;
+  const { property_id } = req?.body;
+  const current_user = req?.user?._id;
+  try {
+    const response = await property_model.update(
+      { _id: property_id },
+      { $set: { new_bid: new_bid, bid_by: current_user } }
+    );
+    res.status(200).json({
+      data: response,
+      success: true,
+      message: "Successfully Place Bid",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: "Server Timeout",
+      success: false,
+    });
+  }
+});
+
+//Get Purchased Property
+route.get("/getpurchased", auth, async (req, res) => {
+  const current_user = req?.user?._id;
+  try {
+    const response = await property_model.find({
+      posted_by: current_user,
+      bid_by: current_user,
+    });
+    res.status(200).json({
+      data: response,
+      success: true,
+      message: "Successfully Get pruchased Property",
     });
   } catch (error) {
     res.status(500).json({
