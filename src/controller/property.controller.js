@@ -135,7 +135,7 @@ route.post("/searchproperty", auth, async (req, res) => {
     const response = await property_model.find(query);
 
     const filterResult = response?.filter(
-      (data) => data?.posted_by !== current_user_id
+      (data) => data?.posted_by?.toString() !== current_user_id?.toString()
     );
     res.status(200).json({
       data: filterResult,
@@ -156,7 +156,7 @@ route.get("/hotProperties", auth, async (req, res) => {
   try {
     const response = await property_model.find({ isHot: true, isSold: false });
     const filterResult = response?.filter(
-      (data) => data?.posted_by !== current_user_id
+      (data) => data?.posted_by?.toString() !== current_user_id?.toString()
     );
     res.status(200).json({
       data: filterResult,
@@ -219,6 +219,7 @@ route.post("/delHot", auth, async (req, res) => {
 route.get("/home/:type", auth, async (req, res) => {
   const { type } = req.params;
   const current_user_id = req?.user?._id;
+
   try {
     const response = await property_model.find({
       property_type: type,
@@ -226,14 +227,16 @@ route.get("/home/:type", auth, async (req, res) => {
       isSold: false,
     });
     const filterResult = response?.filter(
-      (data) => data?.posted_by !== current_user_id
+      (data) => data?.posted_by?.toString() !== current_user_id?.toString()
     );
+
     res.status(200).json({
       data: filterResult,
       success: true,
       message: "Successfully get home data",
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       data: "Server Timeout",
       success: false,
@@ -244,11 +247,13 @@ route.get("/home/:type", auth, async (req, res) => {
 // Get Posted properties
 route.get("/posted", auth, async (req, res) => {
   const current_user = req?.user?._id;
+
   try {
     const response = await property_model.find({
       posted_by: current_user,
       isSold: false,
     });
+
     res.status(200).json({
       data: response,
       success: true,
@@ -288,11 +293,14 @@ route.post("/placebid", auth, async (req, res) => {
 //Get Purchased Property
 route.get("/getpurchased", auth, async (req, res) => {
   const current_user = req?.user?._id;
+  console.log(current_user);
   try {
     const response = await property_model.find({
       posted_by: current_user,
       bid_by: current_user,
+      isSold: true,
     });
+    console.log(response);
     res.status(200).json({
       data: response,
       success: true,
@@ -312,9 +320,11 @@ route.put("/approveBid", auth, async (req, res) => {
   try {
     const get_bid_id = await property_model.find({ _id: property_id });
     const id = get_bid_id[0]?.bid_by;
+    const newPrice = get_bid_id[0]?.new_bid;
+
     const update_data = await property_model.update(
       { _id: property_id },
-      { $set: { posted_by: id, isSold: true } }
+      { $set: { posted_by: id, isSold: true, starting_bid: newPrice } }
     );
     res.status(200).json({
       data: update_data,
