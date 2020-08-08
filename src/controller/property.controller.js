@@ -1,77 +1,54 @@
 const express = require("express");
 const route = express.Router();
-const multer = require("multer");
+const fs = require("fs");
 const auth = require("../middleware/auth");
 const property_model = require("../models/property.model");
 const { json } = require("express");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + file.originalname);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/jpeg" ||
-    file.mimetype === "image/JPG" ||
-    file.mimetype === "image/png"
-  ) {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-
-const upload = multer({ storage: storage, fileFilter: fileFilter });
-
 //Posting the property
-route.post(
-  "/addproperty",
-  auth,
-  upload.array("photos", 6),
-  async (req, res) => {
-    const current_user_id = req?.user?._id;
-    const images_path = req?.files?.map((data) => data?.path);
-    const {
+route.post("/addproperty", auth, async (req, res) => {
+  const current_user_id = req?.user?._id;
+  const { img } = req.body;
+  let base64Image = img.split(";base64,").pop();
+  const path = "uploads/" + Date.now() + ".png";
+  fs.writeFile(path, base64Image, { encoding: "base64" }, (err, data) => {});
+
+  const {
+    area,
+    bathroom,
+    bedroom,
+    description,
+    starting_bid,
+    property_type,
+    city,
+  } = req.body;
+
+  try {
+    const new_property = new property_model({
       area,
       bathroom,
       bedroom,
       description,
       starting_bid,
+      img: path,
+      posted_by: current_user_id,
       property_type,
-      city,
-    } = req.body;
-    try {
-      const new_property = new property_model({
-        area,
-        bathroom,
-        bedroom,
-        description,
-        starting_bid,
-        img: images_path,
-        posted_by: current_user_id,
-        property_type,
-        city: city?.toLowerCase(),
-      });
-      const response = await new_property.save();
-      res.status(201).json({
-        data: response,
-        success: true,
-        message: "Property Successfully Posted",
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({
-        data: "Internal Server Error",
-        success: false,
-      });
-    }
+      city: city,
+    });
+    const response = await new_property.save();
+    res.status(201).json({
+      data: response,
+      success: true,
+      message: "Property Successfully Posted",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      data: "Internal Server Error",
+      success: false,
+    });
   }
-);
+});
 
 //Get all the properties
 route.get("/getproperties", auth, async (req, res) => {
@@ -116,7 +93,7 @@ route.delete("/deleteproperty", auth, async (req, res) => {
 route.post("/searchproperty", auth, async (req, res) => {
   const current_user_id = req?.user?._id;
   const { bedroom, bathroom, property_type, area, city } = req.body;
-  console.log(bedroom, bathroom, property_type, area, city);
+
   let query = {};
   if (bedroom) query.bedroom = { $lte: bedroom };
   if (bathroom) query.bathroom = { $lte: bathroom };
@@ -293,14 +270,14 @@ route.post("/placebid", auth, async (req, res) => {
 //Get Purchased Property
 route.get("/getpurchased", auth, async (req, res) => {
   const current_user = req?.user?._id;
-  console.log(current_user);
+
   try {
     const response = await property_model.find({
       posted_by: current_user,
       bid_by: current_user,
       isSold: true,
     });
-    console.log(response);
+
     res.status(200).json({
       data: response,
       success: true,
