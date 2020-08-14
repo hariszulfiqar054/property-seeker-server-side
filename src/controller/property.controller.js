@@ -337,4 +337,32 @@ route.put("/deleteBid", auth, async (req, res) => {
   }
 });
 
+route.get("/admin/:type", auth, async (req, res) => {
+  const { type } = req.params;
+  const role = req?.user?.user_type?.toLowerCase();
+  if (role == "admin") {
+    try {
+      const response = await property_model.find({
+        property_type: type,
+        isSold: false,
+      });
+      res.status(200).json({
+        data: response,
+        success: true,
+        message: "Successfully Get Data",
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: "Server Timeout",
+        success: false,
+      });
+    }
+  } else {
+    res.status(401).json({
+      data: "You are unauthorized for this action",
+      success: false,
+    });
+  }
+});
+
 module.exports = route;
