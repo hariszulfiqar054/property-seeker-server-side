@@ -149,49 +149,6 @@ route.get("/hotProperties", auth, async (req, res) => {
   }
 });
 
-//Add properties to hot
-route.post("/addHot", auth, async (req, res) => {
-  const { property_id } = req.body;
-  try {
-    const response = await property_model.update(
-      { _id: property_id },
-      { $set: { isHot: true } }
-    );
-    res.status(200).json({
-      data: response,
-      success: true,
-      message: "Successfully added to hot categoires",
-    });
-  } catch (error) {
-    res.status(500).json({
-      data: "Server Timeout",
-      success: false,
-    });
-  }
-});
-
-//Remove from Hot
-route.post("/delHot", auth, async (req, res) => {
-  const { property_id } = req.body;
-
-  try {
-    const response = await property_model.update(
-      { _id: property_id },
-      { $set: { isHot: false } }
-    );
-    res.status(200).json({
-      data: response,
-      success: true,
-      message: "Successfully removed from hot categories",
-    });
-  } catch (error) {
-    res.status(500).json({
-      data: "Server Timeout",
-      success: false,
-    });
-  }
-});
-
 //Home Data
 route.get("/home/:type", auth, async (req, res) => {
   const { type } = req.params;
@@ -337,6 +294,8 @@ route.put("/deleteBid", auth, async (req, res) => {
   }
 });
 
+//ADmin
+
 route.get("/admin/:type", auth, async (req, res) => {
   const { type } = req.params;
   const role = req?.user?.user_type?.toLowerCase();
@@ -350,6 +309,93 @@ route.get("/admin/:type", auth, async (req, res) => {
         data: response,
         success: true,
         message: "Successfully Get Data",
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: "Server Timeout",
+        success: false,
+      });
+    }
+  } else {
+    res.status(401).json({
+      data: "You are unauthorized for this action",
+      success: false,
+    });
+  }
+});
+
+//Approve Property
+route.put("/approve", auth, async (req, res) => {
+  const role = req?.user?.user_type?.toLowerCase();
+  const { property_id } = req.body;
+  if (role == "admin") {
+    try {
+      const response = await property_model.update(
+        { _id: property_id },
+        { $set: { isApproved: true } }
+      );
+      res.status(200).json({
+        data: response,
+        success: true,
+        message: "Successfully Approved",
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: "Server Timeout",
+        success: false,
+      });
+    }
+  } else {
+    res.status(401).json({
+      data: "You are unauthorized for this action",
+      success: false,
+    });
+  }
+});
+
+//Add properties to hot
+route.post("/addHot", auth, async (req, res) => {
+  const { property_id } = req.body;
+  const role = req?.user?.user_type?.toLowerCase();
+  if (role == "admin") {
+    try {
+      const response = await property_model.update(
+        { _id: property_id },
+        { $set: { isHot: true } }
+      );
+      res.status(200).json({
+        data: response,
+        success: true,
+        message: "Successfully added to hot categoires",
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: "Server Timeout",
+        success: false,
+      });
+    }
+  } else {
+    res.status(401).json({
+      data: "You are unauthorized for this action",
+      success: false,
+    });
+  }
+});
+
+//Remove from Hot
+route.post("/delHot", auth, async (req, res) => {
+  const { property_id } = req.body;
+  const role = req?.user?.user_type?.toLowerCase();
+  if (role == "admin") {
+    try {
+      const response = await property_model.update(
+        { _id: property_id },
+        { $set: { isHot: false } }
+      );
+      res.status(200).json({
+        data: response,
+        success: true,
+        message: "Successfully removed from hot categories",
       });
     } catch (error) {
       res.status(500).json({

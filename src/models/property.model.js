@@ -58,6 +58,10 @@ const property = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isApproved: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Property", property);
